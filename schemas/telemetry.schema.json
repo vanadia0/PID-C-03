@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/campus-telemetry.schema.json",
+  "title": "Campus network telemetry",
+  "type": "object",
+  "required": [
+    "device_id",
+    "device_type",
+    "building_id",
+    "timestamp",
+    "data"
+  ],
+  "properties": {
+    "device_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "device_type": {
+      "type": "string",
+      "enum": [
+        "switch",
+        "access_point",
+        "latency_probe"
+      ]
+    },
+    "building_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "device_type": {
+            "const": "switch"
+          }
+        },
+        "required": [
+          "device_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "port_in_mbps",
+              "port_out_mbps",
+              "errors",
+              "uptime_s"
+            ],
+            "properties": {
+              "port_in_mbps": {
+                "type": "number",
+                "minimum": 0
+              },
+              "port_out_mbps": {
+                "type": "number",
+                "minimum": 0
+              },
+              "errors": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "uptime_s": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "device_type": {
+            "const": "access_point"
+          }
+        },
+        "required": [
+          "device_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "clients",
+              "rssi_avg_dbm",
+              "channel_util_pct"
+            ],
+            "properties": {
+              "clients": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "rssi_avg_dbm": {
+                "type": "number",
+                "minimum": -100,
+                "maximum": 0
+              },
+              "channel_util_pct": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "device_type": {
+            "const": "latency_probe"
+          }
+        },
+        "required": [
+          "device_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "latency_ms",
+              "packet_loss_pct",
+              "target"
+            ],
+            "properties": {
+              "latency_ms": {
+                "type": "number",
+                "minimum": 0
+              },
+              "packet_loss_pct": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

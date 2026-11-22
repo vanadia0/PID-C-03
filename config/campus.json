@@ -1,0 +1,134 @@
+{
+  "buildings": [
+    {
+      "building_id": "B-01",
+      "name": "Gedung A"
+    },
+    {
+      "building_id": "B-02",
+      "name": "Gedung B"
+    }
+  ],
+  "devices": [
+    {
+      "device_id": "SW-B01-01",
+      "device_type": "switch",
+      "building_id": "B-01"
+    },
+    {
+      "device_id": "SW-B01-02",
+      "device_type": "switch",
+      "building_id": "B-01"
+    },
+    {
+      "device_id": "SW-B01-03",
+      "device_type": "switch",
+      "building_id": "B-01"
+    },
+    {
+      "device_id": "SW-B01-04",
+      "device_type": "switch",
+      "building_id": "B-01"
+    },
+    {
+      "device_id": "SW-B02-01",
+      "device_type": "switch",
+      "building_id": "B-02"
+    },
+    {
+      "device_id": "SW-B02-02",
+      "device_type": "switch",
+      "building_id": "B-02"
+    },
+    {
+      "device_id": "SW-B02-03",
+      "device_type": "switch",
+      "building_id": "B-02"
+    },
+    {
+      "device_id": "SW-B02-04",
+      "device_type": "switch",
+      "building_id": "B-02"
+    },
+    {
+      "device_id": "AP-B01-01",
+      "device_type": "access_point",
+      "building_id": "B-01"
+    },
+    {
+      "device_id": "AP-B01-02",
+      "device_type": "access_point",
+      "building_id": "B-01"
+    },
+    {
+      "device_id": "AP-B01-03",
+      "device_type": "access_point",
+      "building_id": "B-01"
+    },
+    {
+      "device_id": "AP-B01-04",
+      "device_type": "access_point",
+      "building_id": "B-01"
+    },
+    {
+      "device_id": "AP-B01-05",
+      "device_type": "access_point",
+      "building_id": "B-01"
+    },
+    {
+      "device_id": "AP-B01-06",
+      "device_type": "access_point",
+      "building_id": "B-01"
+    },
+    {
+      "device_id": "AP-B02-01",
+      "device_type": "access_point",
+      "building_id": "B-02"
+    },
+    {
+      "device_id": "AP-B02-02",
+      "device_type": "access_point",
+      "building_id": "B-02"
+    },
+    {
+      "device_id": "AP-B02-03",
+      "device_type": "access_point",
+      "building_id": "B-02"
+    },
+    {
+      "device_id": "AP-B02-04",
+      "device_type": "access_point",
+      "building_id": "B-02"
+    },
+    {
+      "device_id": "AP-B02-05",
+      "device_type": "access_point",
+      "building_id": "B-02"
+    },
+    {
+      "device_id": "AP-B02-06",
+      "device_type": "access_point",
+      "building_id": "B-02"
+    },
+    {
+      "device_id": "LP-B01-01",
+      "device_type": "latency_probe",
+      "building_id": "B-01"
+    },
+    {
+      "device_id": "LP-B01-02",
+      "device_type": "latency_probe",
+      "building_id": "B-01"
+    },
+    {
+      "device_id": "LP-B02-01",
+      "device_type": "latency_probe",
+      "building_id": "B-02"
+    },
+    {
+      "device_id": "LP-B02-02",
+      "device_type": "latency_probe",
+      "building_id": "B-02"
+    }
+  ]
+}
