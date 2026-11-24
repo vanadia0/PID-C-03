@@ -4,10 +4,10 @@
 
 **Blocked by:** 03 — Ingest telemetri mentah sampai MongoDB; 04 — Deteksi tiga jenis data kotor
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Perangkat yang tidak mengirim pesan selama lebih dari dua menit berstatus offline dan memunculkan alert.
-- [ ] Status offline tidak mengisi metrik nyata dengan nilai sintetis.
-- [ ] Flash crowd dapat dipicu melalui konfigurasi untuk satu periode pada jam kuliah.
-- [ ] Periode flash crowd tercatat dan dapat dibedakan dari trafik normal.
-- [ ] Dashboard dan log dapat menunjukkan transisi normal, flash crowd, dan offline.
+- [x] Perangkat yang tidak mengirim pesan selama lebih dari dua menit berstatus offline dan memunculkan alert.
+- [x] Status offline tidak mengisi metrik nyata dengan nilai sintetis.
+- [x] Flash crowd dapat dipicu melalui konfigurasi untuk satu periode pada jam kuliah.
+- [x] Periode flash crowd tercatat dan dapat dibedakan dari trafik normal.
+- [x] Dashboard dan log dapat menunjukkan transisi normal, flash crowd, dan offline.

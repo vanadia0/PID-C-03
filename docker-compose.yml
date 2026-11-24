@@ -46,6 +46,7 @@ services:
       COUNTER_RESET_PROBABILITY: ${COUNTER_RESET_PROBABILITY:-0.01}
       INCONSISTENT_UNIT_PROBABILITY: ${INCONSISTENT_UNIT_PROBABILITY:-0.01}
       MISSING_HEARTBEAT_PROBABILITY: ${MISSING_HEARTBEAT_PROBABILITY:-0.001}
+      RUN_ID: ${RUN_ID:-campus-demo-1}
       INVENTORY_PATH: /app/config/campus.json
     volumes:
       - ./config/campus.json:/app/config/campus.json:ro

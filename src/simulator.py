@@ -2,6 +2,7 @@ import json
 import random
 import os
 import time
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -130,6 +131,7 @@ def run() -> None:
     mqtt_port = int(os.getenv("MQTT_PORT", "1883"))
     interval_seconds = float(os.getenv("INTERVAL_SECONDS", "1"))
     flash_crowd = os.getenv("FLASH_CROWD", "false").lower() == "true"
+    run_id = os.getenv("RUN_ID") or str(uuid.uuid4())
     quality_config = QualityConfig(
         counter_reset_probability=_env_float("COUNTER_RESET_PROBABILITY", 0.0),
         inconsistent_unit_probability=_env_float("INCONSISTENT_UNIT_PROBABILITY", 0.0),
@@ -156,6 +158,12 @@ def run() -> None:
                     quality_config,
                     rng_seed=int(now.timestamp()) * 100 + index,
                 )
+                if payload is not None:
+                    payload["quality_events"] = events
+                    payload["run_metadata"] = {
+                        "run_id": run_id,
+                        "flash_crowd": str(flash_crowd).lower(),
+                    }
                 if payload is None:
                     continue
                 topic = f"campus/telemetry/{payload['building_id']}/{payload['device_type']}"

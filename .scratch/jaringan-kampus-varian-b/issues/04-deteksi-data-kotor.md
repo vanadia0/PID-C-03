@@ -4,10 +4,10 @@
 
 **Blocked by:** 03 — Ingest telemetri mentah sampai MongoDB
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Counter reset dicatat sebagai quality event dan dikeluarkan dari agregat kumulatif.
-- [ ] Satuan yang dikenali dinormalisasi ke unit standar dan unit ambigu ditolak atau ditandai gagal.
-- [ ] Missing heartbeat dilaporkan sebagai quality event dan tidak menghasilkan metrik sintetis.
-- [ ] Laporan data quality menyimpan jumlah payload yang disisipkan dan jumlah yang tertangkap per jenis.
-- [ ] Satu run demo dapat menunjukkan ketiga jenis data kotor beserta hasil penanganannya.
+- [x] Counter reset dicatat sebagai quality event dan dikeluarkan dari agregat kumulatif.
+- [x] Satuan yang dikenali dinormalisasi ke unit standar dan unit ambigu ditolak atau ditandai gagal.
+- [x] Missing heartbeat dilaporkan sebagai quality event dan tidak menghasilkan metrik sintetis.
+- [x] Laporan data quality menyimpan jumlah payload yang disisipkan dan jumlah yang tertangkap per jenis.
+- [x] Satu run demo dapat menunjukkan ketiga jenis data kotor beserta hasil penanganannya.

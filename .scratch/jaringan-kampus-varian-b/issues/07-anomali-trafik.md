@@ -4,10 +4,10 @@
 
 **Blocked by:** 03 — Ingest telemetri mentah sampai MongoDB; 06 — Heartbeat offline dan flash crowd
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Perhitungan menggunakan agregat trafik port yang konsisten dan window satu jam.
-- [ ] Nilai di luar moving-average band ditandai sebagai anomali.
-- [ ] Anomali memuat gedung, perangkat, timestamp, nilai aktual, dan batas band.
-- [ ] Flash crowd yang melewati band dapat dibuktikan sebagai anomali, bukan sekadar trafik tinggi normal.
-- [ ] Hasil anomali dapat ditampilkan real-time dan disimpan untuk analisis historis.
+- [x] Perhitungan menggunakan agregat trafik port yang konsisten dan window satu jam.
+- [x] Nilai di luar moving-average band ditandai sebagai anomali.
+- [x] Anomali memuat gedung, perangkat, timestamp, nilai aktual, dan batas band.
+- [x] Flash crowd yang melewati band dapat dibuktikan sebagai anomali, bukan sekadar trafik tinggi normal.
+- [x] Hasil anomali dapat ditampilkan real-time dan disimpan untuk analisis historis.

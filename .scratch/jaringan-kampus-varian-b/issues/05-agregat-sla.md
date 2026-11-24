@@ -4,10 +4,10 @@
 
 **Blocked by:** 03 — Ingest telemetri mentah sampai MongoDB
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Agregat satu menit tersedia untuk trafik port, klien WiFi, dan metrik probe.
-- [ ] Window lima menit menghitung latensi P95 dan packet loss per gedung.
-- [ ] Latensi P95 di atas 100 ms menghasilkan alert.
-- [ ] Packet loss di atas 2% menghasilkan alert.
-- [ ] Alert memuat gedung, jenis pelanggaran, timestamp, dan kondisi metrik.
+- [x] Agregat satu menit tersedia untuk trafik port, klien WiFi, dan metrik probe.
+- [x] Window lima menit menghitung latensi P95 dan packet loss per gedung.
+- [x] Latensi P95 di atas 100 ms menghasilkan alert.
+- [x] Packet loss di atas 2% menghasilkan alert.
+- [x] Alert memuat gedung, jenis pelanggaran, timestamp, dan kondisi metrik.

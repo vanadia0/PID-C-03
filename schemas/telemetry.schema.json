@@ -33,6 +33,23 @@
     },
     "data": {
       "type": "object"
+    },
+    "quality_events": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "run_metadata": {
+      "type": "object",
+      "properties": {
+        "run_id": {"type": "string"},
+        "flash_crowd": {"type": "string"}
+      }
+    },
+    "message_type": {
+      "type": "string",
+      "enum": ["telemetry", "missing_heartbeat"]
     }
   },
   "allOf": [
@@ -59,12 +76,16 @@
             ],
             "properties": {
               "port_in_mbps": {
-                "type": "number",
-                "minimum": 0
+                "oneOf": [
+                  {"type": "number", "minimum": 0},
+                  {"type": "string"}
+                ]
               },
               "port_out_mbps": {
-                "type": "number",
-                "minimum": 0
+                "oneOf": [
+                  {"type": "number", "minimum": 0},
+                  {"type": "string"}
+                ]
               },
               "errors": {
                 "type": "integer",
