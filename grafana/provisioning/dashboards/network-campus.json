@@ -1,0 +1,152 @@
+{
+  "uid": "network-campus",
+  "title": "Network Campus Telemetry",
+  "tags": ["pid", "network", "campus"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Trafik rata-rata per gedung (Mbps)",
+      "type": "timeseries",
+      "datasource": {"type": "postgres", "uid": "network-warehouse"},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 0},
+      "targets": [{
+        "refId": "A",
+        "rawQuery": true,
+        "format": "time_series",
+        "rawSql": "SELECT t.full_timestamp AS \"time\", b.building_name AS metric, AVG(f.avg_traffic_mbps) AS value FROM fact_device_metric_hourly f JOIN dim_building b ON b.building_key = f.building_key JOIN dim_time t ON t.time_key = f.time_key WHERE $__timeFilter(t.full_timestamp) GROUP BY 1, 2 ORDER BY 1"
+      }],
+      "fieldConfig": {"defaults": {"unit": "Mbits"}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 2,
+      "title": "Kepatuhan SLA harian (%)",
+      "type": "timeseries",
+      "datasource": {"type": "postgres", "uid": "network-warehouse"},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 0},
+      "targets": [{
+        "refId": "A",
+        "rawQuery": true,
+        "format": "time_series",
+        "rawSql": "SELECT t.date_value::timestamp AS \"time\", b.building_name AS metric, AVG(f.sla_compliance_pct) AS value FROM fact_sla_window f JOIN dim_building b ON b.building_key = f.building_key JOIN dim_time t ON t.time_key = f.time_key WHERE $__timeFilter(t.full_timestamp) GROUP BY 1, 2 ORDER BY 1"
+      }],
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 3,
+      "title": "Latensi P95 (ms)",
+      "type": "timeseries",
+      "datasource": {"type": "postgres", "uid": "network-warehouse"},
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 9},
+      "targets": [{
+        "refId": "A",
+        "rawQuery": true,
+        "format": "time_series",
+        "rawSql": "SELECT t.full_timestamp AS \"time\", b.building_name AS metric, AVG(f.latency_p95_ms) AS value FROM fact_sla_window f JOIN dim_building b ON b.building_key = f.building_key JOIN dim_time t ON t.time_key = f.time_key WHERE $__timeFilter(t.full_timestamp) GROUP BY 1, 2 ORDER BY 1"
+      }],
+      "fieldConfig": {"defaults": {"unit": "ms"}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 4,
+      "title": "Jumlah klien WiFi",
+      "type": "timeseries",
+      "datasource": {"type": "postgres", "uid": "network-warehouse"},
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 9},
+      "targets": [{
+        "refId": "A",
+        "rawQuery": true,
+        "format": "time_series",
+        "rawSql": "SELECT t.full_timestamp AS \"time\", b.building_name AS metric, SUM(f.avg_clients) AS value FROM fact_device_metric_hourly f JOIN dim_building b ON b.building_key = f.building_key JOIN dim_time t ON t.time_key = f.time_key WHERE $__timeFilter(t.full_timestamp) GROUP BY 1, 2 ORDER BY 1"
+      }],
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 5,
+      "title": "Packet loss (%)",
+      "type": "timeseries",
+      "datasource": {"type": "postgres", "uid": "network-warehouse"},
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 9},
+      "targets": [{
+        "refId": "A",
+        "rawQuery": true,
+        "format": "time_series",
+        "rawSql": "SELECT t.full_timestamp AS \"time\", b.building_name AS metric, AVG(f.packet_loss_pct) AS value FROM fact_sla_window f JOIN dim_building b ON b.building_key = f.building_key JOIN dim_time t ON t.time_key = f.time_key WHERE $__timeFilter(t.full_timestamp) GROUP BY 1, 2 ORDER BY 1"
+      }],
+      "fieldConfig": {"defaults": {"unit": "percent"}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 6,
+      "title": "Ringkasan data quality",
+      "type": "table",
+      "datasource": {"type": "postgres", "uid": "network-warehouse"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 17},
+      "targets": [{
+        "refId": "A",
+        "rawQuery": true,
+        "format": "table",
+        "rawSql": "SELECT issue_type, SUM(inserted_count) AS inserted_count, SUM(caught_count) AS caught_count FROM fact_data_quality GROUP BY issue_type ORDER BY issue_type"
+      }],
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "options": {"showHeader": true}
+    },
+    {
+      "id": 7,
+      "title": "Alert terbaru",
+      "type": "table",
+      "datasource": {"type": "postgres", "uid": "network-warehouse"},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 17},
+      "targets": [{
+        "refId": "A",
+        "rawQuery": true,
+        "format": "table",
+        "rawSql": "SELECT t.full_timestamp, b.building_name, at.alert_name, a.severity, a.message FROM fact_alert a JOIN dim_building b ON b.building_key = a.building_key JOIN dim_alert_type at ON at.alert_type_key = a.alert_type_key JOIN dim_time t ON t.time_key = a.time_key WHERE $__timeFilter(t.full_timestamp) ORDER BY t.full_timestamp DESC LIMIT 100"
+      }],
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "options": {"showHeader": true}
+    },
+    {
+      "id": 8,
+      "title": "Gedung paling bermasalah (7 hari)",
+      "type": "table",
+      "datasource": {"type": "postgres", "uid": "network-warehouse"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 25},
+      "targets": [{
+        "refId": "A",
+        "rawQuery": true,
+        "format": "table",
+        "rawSql": "SELECT b.building_name, COUNT(*) AS alert_count, COUNT(*) FILTER (WHERE a.severity IN ('high', 'critical')) AS high_severity_count FROM fact_alert a JOIN dim_building b ON b.building_key = a.building_key JOIN dim_time t ON t.time_key = a.time_key WHERE t.full_timestamp >= NOW() - INTERVAL '7 days' GROUP BY b.building_name ORDER BY alert_count DESC, high_severity_count DESC"
+      }],
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "options": {"showHeader": true}
+    },
+    {
+      "id": 9,
+      "title": "Anomali trafik (moving-average band)",
+      "type": "table",
+      "datasource": {"type": "postgres", "uid": "network-warehouse"},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 25},
+      "targets": [{
+        "refId": "A",
+        "rawQuery": true,
+        "format": "table",
+        "rawSql": "SELECT t.full_timestamp, b.building_name, a.severity, a.message FROM fact_alert a JOIN dim_building b ON b.building_key = a.building_key JOIN dim_alert_type at ON at.alert_type_key = a.alert_type_key JOIN dim_time t ON t.time_key = a.time_key WHERE at.alert_code = 'TRAFFIC_ANOMALY' AND $__timeFilter(t.full_timestamp) ORDER BY t.full_timestamp DESC LIMIT 100"
+      }],
+      "fieldConfig": {"defaults": {}, "overrides": []},
+      "options": {"showHeader": true}
+    }
+  ],
+  "annotations": {"list": []},
+  "links": []
+}

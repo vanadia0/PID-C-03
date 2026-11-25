@@ -1,0 +1,14 @@
+apiVersion: 1
+datasources:
+  - name: Network Warehouse
+    uid: network-warehouse
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: network_warehouse
+    user: pid
+    secureJsonData:
+      password: pidpassword
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1500

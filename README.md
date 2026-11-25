@@ -1,107 +1,167 @@
-origin  https://github.com/vanadia0/PID-C-03 (fetch)
-origin  https://github.com/vanadia0/PID-C-03 (push)# PID-C-03 — Jaringan Kampus
+# PID-C-XX - Storage, Warehouse, dan Integrasi
 
-Fondasi lokal untuk pipeline telemetri Jaringan Kampus Varian B. Semua layanan
-berjalan di komputer lokal melalui Docker Compose; tidak ada layanan cloud.
+Implementasi bagian C untuk Varian B: Jaringan Kampus.
 
-## Prasyarat
+## Komponen
 
-- Docker Desktop atau Docker Engine dengan plugin Docker Compose v2.
-- Minimal 8 GB RAM yang dialokasikan ke Docker untuk menjalankan seluruh stack.
+- MySQL: master data gedung, perangkat, dan threshold.
+- MongoDB: penyimpanan payload mentah dan status kualitas.
+- ETL Pandas: normalisasi unit, quality report, dan backfill tujuh hari.
+- PostgreSQL: star schema dan fakta data warehouse.
+- Airflow: menjadwalkan ETL setiap jam.
+- Flask: dashboard operasional dan API.
+- Grafana: datasource warehouse siap digunakan.
+- Docker Compose: penyebaran satu perintah.
 
-Di Windows, instal Docker Desktop dari
-[panduan resmi Docker](https://docs.docker.com/desktop/setup/install/windows-install/),
-lalu pastikan perintah `docker --version` dan `docker compose version` tersedia.
+## Jalankan dari Nol
 
-## Menyalakan lingkungan
+1. Masuk ke folder proyek:
 
-Dari direktori root proyek (`PID-C-03`), salin konfigurasi contoh dan nyalakan
-layanan:
-
-```powershell
-Copy-Item .env.example .env
-docker compose config
-docker compose up -d
-docker compose ps
+```bash
+cd "Projek PID/PID-C-XX"
 ```
 
-`docker compose config` memeriksa konfigurasi sebelum layanan dijalankan.
-Compose mengunduh image yang diperlukan saat pertama kali dijalankan. Untuk
-melihat kata sandi admin Airflow yang dibuat saat inisialisasi, jalankan
-`docker compose logs airflow`; nama penggunanya `admin`.
+2. Jalankan seluruh sistem:
 
-| Layanan | Alamat lokal |
-| --- | --- |
-| Grafana | <http://localhost:3000> |
-| Airflow | <http://localhost:8080> |
-| Spark master UI | <http://localhost:8081> |
-| MQTT | `localhost:1883` |
-| Kafka (client host) | `localhost:29092` |
-| MongoDB | `mongodb://localhost:27017` |
-| MySQL | `localhost:3306` |
-| PostgreSQL warehouse | `localhost:5432` |
-
-Semua port dipetakan ke loopback agar layanan fondasi tidak terbuka ke jaringan
-lokal. Nilai kredensial di `.env.example` hanya untuk pengembangan lokal, bukan
-untuk deployment produksi. Broker MQTT mengizinkan koneksi anonim; jangan
-mengubah binding port menjadi terbuka ke jaringan tanpa menambahkan autentikasi.
-
-Daftar gedung dan perangkat ada di [`config/campus.json`](config/campus.json).
-Kontrak payload berada di [`schemas/telemetry.schema.json`](schemas/telemetry.schema.json).
-Direktori `airflow/dags` adalah lokasi DAG proyek.
-
-## Simulator telemetri
-
-Simulator dijalankan otomatis sebagai layanan `simulator`. Untuk mengubah
-pengujian dapat diatur sebelum `docker compose up -d` di `.env`:
-
-```dotenv
-INTERVAL_SECONDS=1
-FLASH_CROWD=false
-COUNTER_RESET_PROBABILITY=0.01
-INCONSISTENT_UNIT_PROBABILITY=0.01
-MISSING_HEARTBEAT_PROBABILITY=0.001
+```bash
+docker compose up -d --build
 ```
 
-Nilai probabilitas berkisar dari `0` sampai `1`. Untuk memicu lonjakan secara
-terkendali, gunakan `FLASH_CROWD=true`. Lihat telemetri melalui MQTT dengan:
+3. Tunggu container sehat, lalu jalankan ETL dari dashboard:
 
-```powershell
-docker compose exec mqtt mosquitto_sub -h localhost -t "campus/telemetry/#" -v
+- Dashboard: http://localhost:5000
+- Airflow: http://localhost:8080
+- Grafana: http://localhost:3000
+
+Di VS Code, buka tab **Ports** dan pastikan port berikut berstatus forwarded:
+
+- `5000` — Dashboard
+- `3000` — Grafana
+- `8080` — Airflow
+- `27018` — MongoDB proyek
+
+Jika browser menampilkan **Failed to load page**, buka alamat dari tab Ports, bukan
+alamat yang diketik secara manual. Pilih port `5000`, lalu klik **Open in Browser**.
+
+Kredensial lokal:
+
+- Dashboard tidak membutuhkan login.
+- Grafana: `admin` / `admin`
+- Airflow: login dibuat Airflow standalone saat pertama kali dijalankan.
+
+Grafana otomatis menyediakan dashboard **Network Campus Telemetry**. Pilih
+rentang waktu **Last 7 days** untuk melihat metrik warehouse.
+
+Payload jaringan dari simulator/streaming dapat disimpan ke MongoDB collection
+`network_telemetry.raw_network_metrics` dengan field `device_id`, `device_type`,
+`building_id`, `timestamp`, dan `data`. Dashboard juga menyediakan endpoint
+`POST /api/ingest` untuk mengirim payload ke collection tersebut. ETL membaca
+payload non-demo terlebih dahulu; jika belum ada, ia memakai data demo tujuh hari.
+
+Hasil signature dari Spark dapat dikirim ke `POST /api/stream/alerts` agar ikut
+masuk ke warehouse dan panel Grafana:
+
+```bash
+curl -X POST http://localhost:5000/api/stream/alerts \
+  -H "Content-Type: application/json" \
+  -d '{
+    "timestamp": "2026-11-24T10:05:00Z",
+    "building_id": "GEDUNG-B",
+    "device_id": "PROBE-03",
+    "alert_code": "TRAFFIC_ANOMALY",
+    "severity": "high",
+    "message": "Traffic di atas moving-average band"
+  }'
 ```
 
-## Jalur ingest
+Setelah itu jalankan DAG `network_warehouse_etl` untuk memuat alert ke warehouse.
 
-Setelah simulator berjalan, MQTT diteruskan ke Kafka oleh
-`mqtt-kafka-bridge`, lalu diproses oleh `spark-ingest` dan disimpan ke MongoDB:
+ETL normalisasi `port_in_mbps`/`port_out_mbps`, latensi, packet loss, utilisasi
+kanal, dan RSSI. Throughput masuk/keluar diringkas sebagai total trafik Mbps
+untuk fakta hourly. Payload dengan field lokasi atau waktu invalid ditolak dari
+warehouse dan errornya ditampilkan di task Airflow.
 
-```powershell
-docker compose up -d mqtt kafka mongodb mqtt-kafka-bridge spark-ingest simulator
-docker compose ps
-docker compose logs --tail=20 spark-ingest mqtt-kafka-bridge
+Atau jalankan ETL langsung dari host jika Python sudah memasang dependency:
+
+```bash
+python src/etl/etl_network.py
 ```
 
-Dokumen mentah tersedia pada MongoDB database `network`, koleksi
-`telemetry_raw`. Contoh pemeriksaan:
+## Alur Demo
 
-```powershell
-docker compose exec mongodb mongosh network --quiet --eval "db.telemetry_raw.find().limit(3).forEach(printjson)"
-docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic campus.telemetry --from-beginning --max-messages 3
+1. Buka dashboard dan tekan **Jalankan ETL 7 Hari**.
+2. Tunjukkan tabel gedung paling bermasalah.
+3. Tunjukkan tren kepatuhan SLA harian.
+4. Tunjukkan quality report:
+   - unit dinormalisasi;
+   - unit ambigu ditolak;
+   - counter reset ditandai.
+5. Buka `/api/alerts` untuk melihat alert latensi dan packet loss.
+6. Kirim satu payload uji:
+
+```bash
+curl -X POST http://localhost:5000/api/ingest \
+  -H "Content-Type: application/json" \
+  -d '{
+    "device_id": "SW-99",
+    "device_type": "switch",
+    "building_id": "GEDUNG-A",
+    "timestamp": "2026-11-24T10:00:00Z",
+    "data": {"traffic_mbps": "500mbps"}
+  }'
 ```
 
-## Menghentikan lingkungan
+## Pengujian ETL
 
-Hentikan container tetapi pertahankan data lokal:
+Dependency:
 
-```powershell
+```bash
+python -m pip install pandas psycopg2-binary pymongo Flask pytest
+python -m pytest tests/test_etl_network.py -q
+```
+
+## Query Bukti
+
+Gedung paling bermasalah:
+
+```sql
+SELECT b.building_name,
+       COUNT(a.alert_id) AS alert_count
+FROM fact_alert a
+JOIN dim_building b ON b.building_key = a.building_key
+GROUP BY b.building_name
+ORDER BY alert_count DESC;
+```
+
+Tren SLA harian:
+
+```sql
+SELECT t.date_value,
+       b.building_name,
+       AVG(f.sla_compliance_pct) AS compliance_pct
+FROM fact_sla_window f
+JOIN dim_building b ON b.building_key = f.building_key
+JOIN dim_time t ON t.time_key = f.time_key
+GROUP BY t.date_value, b.building_name
+ORDER BY t.date_value, b.building_name;
+```
+
+Kualitas:
+
+```sql
+SELECT issue_type, SUM(inserted_count), SUM(caught_count)
+FROM fact_data_quality
+GROUP BY issue_type;
+```
+
+## Penghentian
+
+```bash
 docker compose down
 ```
 
-Untuk menghapus seluruh data persisten dan memulai ulang dari keadaan kosong:
+Untuk menghapus seluruh data demonstrasi:
 
-```powershell
+```bash
 docker compose down -v
 ```
-
-Perintah terakhir menghapus data database, Kafka, Grafana, dan Airflow yang
-disimpan di Docker volumes. File konfigurasi di repo tidak terhapus.

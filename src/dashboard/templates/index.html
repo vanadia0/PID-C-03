@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Network Campus Telemetry</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #eef3f8; color: #183153; }
+    header { background: #183153; color: white; padding: 18px 24px; }
+    main { max-width: 1180px; margin: auto; padding: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .card { background: white; border-radius: 8px; padding: 16px; box-shadow: 0 2px 8px #ccd6e0; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; border-bottom: 1px solid #dde5ed; padding: 8px; }
+    button { background: #2266b3; color: white; border: 0; border-radius: 5px; padding: 10px 14px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header><h1>Network Campus Telemetry</h1></header>
+  <main>
+    <div class="grid">
+      <section class="card"><h2>Status Sistem</h2><div id="status">Memuat...</div></section>
+      <section class="card"><h2>Aksi Demo</h2><button onclick="runEtl()">Jalankan ETL 7 Hari</button><div id="etl"></div></section>
+      <section class="card"><h2>Gedung Bermasalah</h2><div id="buildings"></div></section>
+      <section class="card"><h2>Data Quality</h2><div id="quality"></div></section>
+    </div>
+    <section class="card" style="margin-top:16px">
+      <h2>Tren Kepatuhan SLA Harian</h2><div id="sla"></div>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <h2>Alert Terbaru</h2><div id="alerts"></div>
+    </section>
+  </main>
+  <script>
+    async function getJson(url) { const response = await fetch(url); return response.json(); }
+    function table(rows, columns) {
+      if (!rows.length) return "<p>Belum ada data</p>";
+      return `<table><thead><tr>${columns.map(c => `<th>${c.label}</th>`).join("")}</tr></thead><tbody>` +
+        rows.map(row => `<tr>${columns.map(c => `<td>${row[c.key] ?? "-"}</td>`).join("")}</tr>`).join("") +
+        "</tbody></table>";
+    }
+    async function refresh() {
+      const status = await getJson("/api/status");
+      document.getElementById("status").innerText = status.status;
+      const buildings = await getJson("/api/buildings");
+      document.getElementById("buildings").innerHTML = table(buildings, [
+        {key:"building_name", label:"Gedung"}, {key:"avg_compliance_pct", label:"SLA %"},
+        {key:"avg_latency_p95_ms", label:"P95 ms"}, {key:"avg_packet_loss_pct", label:"Loss %"}
+      ]);
+      const quality = await getJson("/api/quality");
+      document.getElementById("quality").innerHTML = table(quality, [
+        {key:"issue_type", label:"Jenis"}, {key:"inserted_count", label:"Disisipkan"}, {key:"caught_count", label:"Tertangkap"}
+      ]);
+      const sla = await getJson("/api/sla");
+      document.getElementById("sla").innerHTML = table(sla, [
+        {key:"date_value", label:"Tanggal"}, {key:"building_name", label:"Gedung"},
+        {key:"compliance_pct", label:"SLA %"}, {key:"latency_p95_ms", label:"P95 ms"}
+      ]);
+      const alerts = await getJson("/api/alerts");
+      document.getElementById("alerts").innerHTML = table(alerts, [
+        {key:"building_name", label:"Gedung"}, {key:"alert_name", label:"Jenis"},
+        {key:"severity", label:"Level"}, {key:"message", label:"Pesan"}
+      ]);
+    }
+    async function runEtl() {
+      document.getElementById("etl").innerText = "Menjalankan...";
+      const response = await fetch("/api/run-etl", {method:"POST"});
+      const result = await response.json();
+      document.getElementById("etl").innerText = response.ok ? "ETL selesai" : result.error;
+      refresh();
+    }
+    refresh();
+    setInterval(refresh, 30000);
+  </script>
+</body>
+</html>
